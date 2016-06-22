@@ -41,6 +41,10 @@ void yarp::dev::OpenNI2DeviceDriverServer::openPorts(string portPrefix, bool use
         strTemp = portPrefix+PORTNAME_IMAGEFRAME+":o";
         imageFramePort->open(strTemp.c_str());
     }
+
+    depthFramePort_char = new BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >();
+    strTemp = portPrefix+PORTNAME_DEPTHFRAME+"_char:o";
+    depthFramePort_char->open(strTemp.c_str());
 }
 
 void yarp::dev::OpenNI2DeviceDriverServer::sendSensorData()
@@ -65,6 +69,54 @@ void yarp::dev::OpenNI2DeviceDriverServer::sendSensorData()
     depthFramePort->prepare() = OpenNI2SkeletonTracker::getSensor()->depthFrame;
     depthFramePort->setEnvelope(timestamp);
     depthFramePort->write();
+
+    // ************************************************************************************************** //
+    input = OpenNI2SkeletonTracker::getSensor()->depthFrame;
+    yarp::sig::ImageOf< yarp::sig::PixelMono > &tmp_char = depthFramePort_char->prepare(); // = OpenNI2SkeletonTracker::getSensor()->depthFrame;
+
+    tmp_char.zero();
+//     tmp_char.setPixelCode(VOCAB_PIXEL_MONO);
+//     tmp_char.setPixelSize(1);
+    tmp_char.resize(input.width(), input.height());
+
+    double min = 0;
+    double max = 10000;
+
+    PixelMono16 *inPixels = (PixelMono16 *)input.getRawImage();
+    unsigned char *pixels = tmp_char.getRawImage();
+    double meas_max = 0, meas_min = 1000;
+
+    for(int h=0; h<input.height(); h++)
+    {
+        for(int w=40; w<input.width() -60; w++)
+        {
+            float inVal = (float) (inPixels[w + (h * input.width())] /* /1000.0 */);
+            if (inVal > meas_max)  meas_max = inVal;
+            if (inVal < meas_min)  meas_min = inVal;
+
+            if (inVal != inVal) // /* NaN */ || inVal < min || inVal > max)
+            {
+//                std::cout << "NOT OK: " << w << "/" << h << ": " << inVal << std::endl;
+                pixels[w + (h * (input.width() ))] = 0;
+            }
+            else {
+//                std::cout << "OK2" << std::endl;
+
+                int val = (int) (255.0 - (inVal * 255.0 / (max - min)));
+                if(val >= 255)
+                    val = 0;
+                if(val <= 0)
+                    val = 0;
+                pixels[w + (h * (input.width() ))] = (char) val;
+            }
+        }
+    }
+
+    depthFramePort_char->setEnvelope(timestamp);
+    depthFramePort_char->write();
+
+    // ************************************************************************************************** //
+
 
     // sending skeleton data
 
@@ -250,6 +302,8 @@ bool yarp::dev::OpenNI2DeviceDriverServer::close() {
         if(colorON) {
             imageFramePort->close();
         }
+
+        depthFramePort_char->close();
         receivingPort->close();
         withOpenPorts = false;
         cout << "Done" << endl;
@@ -337,5 +391,6 @@ ImageOf<PixelRgb> yarp::dev::OpenNI2DeviceDriverServer::getImageFrame() {
 
 ImageOf<PixelMono16> yarp::dev::OpenNI2DeviceDriverServer::getDepthFrame() {
     updateInterface();
+
     return OpenNI2SkeletonTracker::getSensor()->depthFrame;
 }

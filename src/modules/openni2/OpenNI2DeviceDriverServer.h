@@ -88,6 +88,10 @@ private:
     string fileDevice;
     string oniOutputFile;
 
+
+    BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >   *depthFramePort_char;
+    yarp::sig::ImageOf<yarp::sig::PixelMono16>                 input;
+
     /**
      * Opens the depth sensor and rgb camera image ports
      */
