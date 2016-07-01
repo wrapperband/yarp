@@ -1,3 +1,5 @@
+project("yarp_msgs")
+
 include(YarpIDL)
 
 yarp_idl_to_dir("${CMAKE_CURRENT_SOURCE_DIR}/stateExt.thrift"
@@ -34,6 +36,13 @@ yarp_idl_to_dir("${CMAKE_CURRENT_SOURCE_DIR}/ros/msg_file/geometry_msgs/WrenchSt
                 ros_msg_headers
                 ros_msg_include_dirs)
 include(${CMAKE_CURRENT_SOURCE_DIR}/ros/geometry_msgs_WrenchStamped_msg.cmake)
+
+yarp_idl_to_dir("${CMAKE_CURRENT_SOURCE_DIR}/ros/msg_file/robotology_msgs/controlBoardMsg.msg"
+                "${CMAKE_CURRENT_SOURCE_DIR}/ros"
+                ros_msg_sources
+                ros_msg_headers
+                ros_msg_include_dirs)
+include(${CMAKE_CURRENT_SOURCE_DIR}/ros/robotology_msgs_controlBoardMsg_msg.cmake)
 
 # # add automatically generated files to source list
 set(cbw2_msgs_srcs        ${yarp_msg_sources} ${ros_msg_sources}   PARENT_SCOPE)

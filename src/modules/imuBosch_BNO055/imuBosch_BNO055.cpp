@@ -261,11 +261,15 @@ int BoschIMU::readBytes(unsigned char* buffer, int bytes)
 {
     int r = 0;
     int bytesRead = 0;
+    double start = yarp::os::Time::now();
     do
     {
+        if(r!=0)
+            std::cout << "waiting time " << (start - yarp::os::Time::now());
         r = ::read(fd_ser, (void*)&buffer[bytesRead], 1);
         if(r > 0)
             bytesRead += r;
+        start = yarp::os::Time::now();
     }
     while(r!=0 && bytesRead < bytes);
     if(bytesRead != bytes)

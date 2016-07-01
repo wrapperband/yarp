@@ -5,6 +5,7 @@
 set(tests ${CMAKE_CURRENT_SOURCE_DIR})
 set(outs ${CMAKE_CURRENT_BINARY_DIR})
 
+message("CIAOOOOO")
 macro(add_gen_test name)
   add_test(NAME ${name} COMMAND $<TARGET_FILE:yarpidl_rosmsg> ${ARGN} --out ${outs} --gen yarp)
 endmacro()
@@ -27,7 +28,6 @@ macro(add_test_test name dir)
     WORKING_DIRECTORY ${bin_dir}
     COMMAND ${CMAKE_CTEST_COMMAND})
 endmacro()
-
 
 add_gen_test(idl_rosmsg_demo_base ${tests}/demo/Demo.msg)
 

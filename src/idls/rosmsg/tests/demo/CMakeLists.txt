@@ -36,6 +36,7 @@ set(IDL_FILES SharedData.msg
               HeaderTest2.srv)
 yarp_add_idl(IDL_GEN_FILES ${IDL_FILES})
 
+message("\n\n test generated files are ${IDL_GEN_FILES}")
 include_directories(${YARP_INCLUDE_DIRS})
 add_executable(demo_test2 main.cpp ${IDL_GEN_FILES})
 target_link_libraries(demo_test2 ${YARP_LIBRARIES})

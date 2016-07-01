@@ -44,7 +44,13 @@
 #include <yarpRosHelper.h>
 #include <yarp/os/Node.h>
 #include <yarp/os/Publisher.h>
-#include <sensor_msgs_JointState.h>  // Defines ROS jointState msg; it already includes TickTime and Header
+#include <yarp/os/Subscriber.h>
+
+#include <sensor_msgs_JointState.h>         // Defines ROS jointState msg; it already includes TickTime and Header
+#include <robotology_msgs_controlBoardMsg.h>    // Custom message for input streaming commands
+#include "ROSCmdMessagesParser.h"
+
+
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 #ifdef MSVC
@@ -284,41 +290,46 @@ class yarp::dev::ControlBoardWrapper:   public yarp::dev::DeviceDriver,
 private:
 
 #ifndef    DOXYGEN_SHOULD_SKIP_THIS
-    std::string rootName;
-    yarp::dev::impl::WrappedDevice device;
+    std::string                                                 rootName;
+    yarp::os::Stamp                                             time;                       // envelope to attach to the state port
+    yarp::os::Semaphore                                         timeMutex;
+    yarp::dev::impl::WrappedDevice                              device;
 
-    bool checkPortName(yarp::os::Searchable &params);
+    // Input RPC port
+    yarp::os::Port                                              inputRPCPort;               // Input RPC port for set/get remote calls
+    yarp::os::PortReaderBuffer<yarp::os::Bottle>                inputRPC_buffer;            // Buffer associated to the inputRPCPort port
+    yarp::dev::impl::RPCMessagesParser                          RPC_parser;                 // Message parser associated to the inputRPCPort port
 
+    // input streaming port
+    yarp::os::BufferedPort<CommandMessage>                      inputStreamingPort;         // Input streaming port for high frequency commands
+    yarp::dev::impl::StreamingMessagesParser                    streaming_parser;           // Message parser associated to the inputStreamingPort port
 
-    yarp::os::BufferedPort<yarp::sig::Vector>  outputPositionStatePort;   // Port /state:o streaming out the encoder positions
-    yarp::os::BufferedPort<CommandMessage>     inputStreamingPort;        // Input streaming port for high frequency commands
-    yarp::os::Port inputRPCPort;                // Input RPC port for set/get remote calls
-    yarp::os::Stamp time;                       // envelope to attach to the state port
-    yarp::os::Semaphore timeMutex;
+    // output basic state port -- TODO: quite old ... shall it be deprecated?
+    yarp::os::BufferedPort<yarp::sig::Vector>                   outputPositionStatePort;    // Port /state:o streaming out the encoder positions
 
-    // Buffer associated to the extendedOutputStatePort port; in this case we will use the type generated
-    // from the YARP .thrift file
-    yarp::os::PortWriterBuffer<jointData>           extendedOutputState_buffer;
-    yarp::os::Port extendedOutputStatePort;         // Port /stateExt:o streaming out the struct with the robot data
+    // output extended state port -- new one
+    yarp::os::Port                                              extendedOutputStatePort;    // Port /stateExt:o streaming out the struct with the robot data
+    yarp::os::PortWriterBuffer<jointData>                       extendedOutputState_buffer;
 
     // ROS state publisher
-    ROSTopicUsageType                                   useROS;                     // decide if open ROS topic or not
-    std::vector<std::string>                            jointNames;                 // name of the joints
-    std::string                                         rosNodeName;                // name of the rosNode
-    std::string                                         rosTopicName;               // name of the rosTopic
-    yarp::os::Node                                      *rosNode;                   // add a ROS node
-    yarp::os::NetUint32                                 rosMsgCounter;              // incremental counter in the ROS message
-    yarp::os::PortWriterBuffer<sensor_msgs_JointState>  rosOutputState_buffer;      // Buffer associated to the ROS topic
-    yarp::os::Publisher<sensor_msgs_JointState>         rosPublisherPort;           // Dedicated ROS topic publisher
+    ROSTopicUsageType                                           useROS;                     // decide if open ROS topic or not
+    std::vector<std::string>                                    jointNames;                 // name of the joints
+    std::string                                                 rosNodeName;                // name of the rosNode
+    std::string                                                 rosTopicName;               // name of the rosTopic
+    yarp::os::Node                                             *rosNode;                    // add a ROS node
+    yarp::os::NetUint32                                         rosMsgCounter;              // incremental counter in the ROS message
+    yarp::os::PortWriterBuffer<sensor_msgs_JointState>          rosOutputState_buffer;      // Buffer associated to the ROS topic
+    yarp::os::Publisher<sensor_msgs_JointState>                 rosPublisherPort;           // Dedicated ROS topic publisher
 
-    yarp::os::PortReaderBuffer<yarp::os::Bottle>    inputRPC_buffer;                // Buffer associated to the inputRPCPort port
-    yarp::dev::impl::RPCMessagesParser              RPC_parser;                     // Message parser associated to the inputRPCPort port
-    yarp::dev::impl::StreamingMessagesParser        streaming_parser;               // Message parser associated to the inputStreamingPort port
+    robotology_msgs_controlBoardMsg                             ROS_cmd;                    // TODO: forse non serve
+    yarp::os::Subscriber<robotology_msgs_controlBoardMsg>       rosCmdSubscriberTopic;      // Dedicated ROS topic subscriber for input streaming commands
+    yarp::os::PortReaderBuffer<robotology_msgs_controlBoardMsg> rosCmdInput_buffer;         // Buffer associated to the rosCmdSubscriberTopic (to have a callback)
+    yarp::dev::impl::ROSCmdMessagesParser                       rosCmdMessageParser;        // Class parsing ROS cmd messages
 
 
     // RPC calls are concurrent from multiple clients, data used inside the calls has to be protected
-    yarp::os::Semaphore                             rpcDataMutex;                   // mutex to avoid concurrency between more clients using rppc port
-    yarp::dev::impl::MultiJointData                 rpcData;                        // Structure used to re-arrange data from "multiple_joints" calls.
+    yarp::os::Semaphore                                         rpcDataMutex;               // mutex to avoid concurrency between more clients using rppc port
+    yarp::dev::impl::MultiJointData                             rpcData;                    // Structure used to re-arrange data from "multiple_joints" calls.
 
     std::string         partName;               // to open ports and print more detailed debug messages
 
@@ -329,6 +340,7 @@ private:
     bool              _verb;        // make it work and propagate to subdevice if --subdevice option is used
 
     yarp::os::Bottle getOptions();
+    bool checkPortName(yarp::os::Searchable &params);
     bool updateAxisName();
     bool checkROSParams(yarp::os::Searchable &config);
     bool initialize_ROS();

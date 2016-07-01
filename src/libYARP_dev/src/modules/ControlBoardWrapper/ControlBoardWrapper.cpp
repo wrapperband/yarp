@@ -286,6 +286,16 @@ bool ControlBoardWrapper::initialize_ROS()
                 success = false;
                 break;
             }
+
+
+            if(!rosCmdSubscriberTopic.topic(rosTopicName+"/cmd") )
+            {
+                yError() << " opening " << (rosTopicName+"/cmd") << " Topic, check your yarp-ROS network configuration\n";
+                success = false;
+                break;
+            }
+
+            rosCmdSubscriberTopic.setReader(rosCmdMessageParser);
             success = true;
         } break;
 
@@ -621,6 +631,7 @@ bool ControlBoardWrapper::openDeferredAttach(Property& prop)
 // open it and and attach to immediatly.
 bool ControlBoardWrapper::openAndAttachSubDevice(Property& prop)
 {
+    yTrace();
     Property p;
     subDeviceOwned = new PolyDriver;
     p.fromString(prop.toString().c_str());
@@ -689,6 +700,8 @@ bool ControlBoardWrapper::openAndAttachSubDevice(Property& prop)
     // initialization.
     RPC_parser.initialize();
     updateAxisName();
+    if(useROS != ROS_disabled)
+        rosCmdMessageParser.initialize(this);
     return true;
 }
 
@@ -757,6 +770,7 @@ bool ControlBoardWrapper::updateAxisName()
 
 bool ControlBoardWrapper::attachAll(const PolyDriverList &polylist)
 {
+    yTrace();
     //check if we already instantiated a subdevice previously
     if (ownDevices)
         return false;
@@ -808,8 +822,10 @@ bool ControlBoardWrapper::attachAll(const PolyDriverList &polylist)
 
     // initialization.
     RPC_parser.initialize();
-
     updateAxisName();
+    if(useROS != ROS_disabled)
+        rosCmdMessageParser.initialize(this);
+
     RateThread::setRate(period);
     RateThread::start();
 
