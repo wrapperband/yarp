@@ -15,6 +15,8 @@ yarp::dev::OpenNI2DeviceDriverServer::OpenNI2DeviceDriverServer()
 #else
     userTracking = false;
 #endif
+    crop_left  = 0;
+    crop_right = 0;
 }
 
 yarp::dev::OpenNI2DeviceDriverServer::~OpenNI2DeviceDriverServer()
@@ -88,7 +90,7 @@ void yarp::dev::OpenNI2DeviceDriverServer::sendSensorData()
 
     for(int h=0; h<input.height(); h++)
     {
-        for(int w=40; w<input.width() -60; w++)
+        for(int w=crop_left; w<input.width() -crop_right; w++)
         {
             float inVal = (float) (inPixels[w + (h * input.width())] /* /1000.0 */);
             if (inVal > meas_max)  meas_max = inVal;
@@ -188,6 +190,18 @@ bool yarp::dev::OpenNI2DeviceDriverServer::open(yarp::os::Searchable& config) {
         colorON = false;
     } else {
         colorON = true;
+    }
+
+    // workaround for buggy XTION sensor. To be removed before merging in master
+    if(config.check("crop", "Workaround for buggy XTION sensor"))
+    {
+        crop_left  = LEFT_CROP_IMAGE;
+        crop_right = RIGHT_CROP_IMAGE;
+    }
+    else
+    {
+        crop_left  = 0;
+        crop_right = 0;
     }
 
     if(config.check("noRGBMirror", "enable RGB  mirroring")) {

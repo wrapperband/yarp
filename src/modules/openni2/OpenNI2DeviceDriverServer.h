@@ -42,6 +42,10 @@ namespace yarp {
         class OpenNI2DeviceDriverServer;
     }
 }
+// workaround for buggy XTION sensor. To be removed before merging in master
+#define LEFT_CROP_IMAGE  40
+#define RIGHT_CROP_IMAGE 60
+// 
 
 /**
  * @ingroup dev_impl_media
@@ -88,6 +92,10 @@ private:
     string fileDevice;
     string oniOutputFile;
 
+    // workaround for buggy XTION sensor. To be removed before merging in master
+    bool cropON;
+    int crop_left, crop_right;
+    // end workaround
 
     BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >   *depthFramePort_char;
     yarp::sig::ImageOf<yarp::sig::PixelMono16>                 input;
