@@ -262,7 +262,19 @@ int OpenNI2SkeletonTracker::init(){
                    cout << "RGB stream mirroring: OFF" << endl;
                }
             }
-               
+
+            openni::CameraSettings* cameraSettings = imageStream.getCameraSettings();
+            cameraSettings->setAutoExposureEnabled(false);
+            cameraSettings->setAutoWhiteBalanceEnabled(false);
+
+            if ( cameraSettings != 0 ) {
+                std::cout << "CameraSettings" << std::endl;
+                std::cout << " Auto Exposure Enabled      : " << cameraSettings->getAutoExposureEnabled() << std::endl;
+                std::cout << " Auto WhiteBalance Enabled  : " << cameraSettings->getAutoWhiteBalanceEnabled() << std::endl;
+                std::cout << " Exposure                   : " << cameraSettings->getExposure() << std::endl;
+                std::cout << " Gain                       : " << cameraSettings->getGain() << std::endl;
+            }
+
             if (oniRecord) {
             recorder.attach(imageStream);
             }
