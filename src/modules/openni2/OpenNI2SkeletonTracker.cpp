@@ -264,8 +264,26 @@ int OpenNI2SkeletonTracker::init(){
             }
 
             openni::CameraSettings* cameraSettings = imageStream.getCameraSettings();
-            cameraSettings->setAutoExposureEnabled(false);
-            cameraSettings->setAutoWhiteBalanceEnabled(false);
+            cameraSettings->setAutoExposureEnabled(true);
+            cameraSettings->setAutoWhiteBalanceEnabled(true);
+
+            cameraSettings->setExposure(EXPOSURE_VALUE);
+            if (rc != openni::STATUS_OK)
+            {
+	            yError("Can't change exposure");
+            }
+            yDebug("Changed exposure to: %d", cameraSettings->getExposure());
+
+            cameraSettings->setGain(GAIN_VALUE);
+            if (rc != openni::STATUS_OK)
+            {
+	            yError("Can't change gain");
+            }
+            yDebug("Changed gain to: %d", cameraSettings->getGain());
+
+            if (oniRecord) {
+            recorder.attach(imageStream);
+            }
 
             if ( cameraSettings != 0 ) {
                 std::cout << "CameraSettings" << std::endl;
@@ -273,10 +291,6 @@ int OpenNI2SkeletonTracker::init(){
                 std::cout << " Auto WhiteBalance Enabled  : " << cameraSettings->getAutoWhiteBalanceEnabled() << std::endl;
                 std::cout << " Exposure                   : " << cameraSettings->getExposure() << std::endl;
                 std::cout << " Gain                       : " << cameraSettings->getGain() << std::endl;
-            }
-
-            if (oniRecord) {
-            recorder.attach(imageStream);
             }
 
             rc = imageStream.start();

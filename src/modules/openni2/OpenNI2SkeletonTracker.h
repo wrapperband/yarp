@@ -33,6 +33,9 @@ using namespace yarp::sig;
 #define DEFAULT_COLOR_MODE 0
 #define DEFAULT_DEPTH_MODE 0
 
+#define EXPOSURE_VALUE 0
+#define GAIN_VALUE     100
+
 /**
  * Class used by the OpenNI2DeviceDriverServer to interface with the sensor.
  * To compile the OpenNI/NITE frameworks are needed.
