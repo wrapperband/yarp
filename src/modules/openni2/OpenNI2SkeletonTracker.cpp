@@ -263,9 +263,9 @@ int OpenNI2SkeletonTracker::init(){
                }
             }
 
-            openni::CameraSettings* cameraSettings = imageStream.getCameraSettings();
-            cameraSettings->setAutoExposureEnabled(true);
-            cameraSettings->setAutoWhiteBalanceEnabled(true);
+            cameraSettings = imageStream.getCameraSettings();
+            cameraSettings->setAutoExposureEnabled(AUTO_EXPOSURE);
+            cameraSettings->setAutoWhiteBalanceEnabled(AUTO_WHITE_BALANCE);
 
             cameraSettings->setExposure(EXPOSURE_VALUE);
             if (rc != openni::STATUS_OK)
@@ -416,6 +416,12 @@ void OpenNI2SkeletonTracker::initVars(){
 OpenNI2SkeletonTracker::SensorStatus *OpenNI2SkeletonTracker::getSensor(){
     return sensorStatus;
 }
+
+openni::VideoStream* OpenNI2SkeletonTracker::getImageCameraSettings()
+{
+    return &imageStream;
+}
+
 
 void OpenNI2SkeletonTracker::updateSensor(){
     // get camera image

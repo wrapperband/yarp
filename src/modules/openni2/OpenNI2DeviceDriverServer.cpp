@@ -28,6 +28,7 @@ void yarp::dev::OpenNI2DeviceDriverServer::openPorts(string portPrefix, bool use
     string receivingPortName = portPrefix+":i";
     receivingPort = new BufferedPort<Bottle>();
     receivingPort->open(receivingPortName.c_str());
+    receivingPort->useCallback(parser);
 
     if(userTracking) {
         string skeletonPortName = portPrefix+PORTNAME_SKELETON+":o";
@@ -341,6 +342,7 @@ bool yarp::dev::OpenNI2DeviceDriverServer::updateInterface() {
 bool yarp::dev::OpenNI2DeviceDriverServer::startService() {
 
     // returns false so that the updateService is started
+    parser.init(skeleton->getImageCameraSettings());
     return false;
 }
 

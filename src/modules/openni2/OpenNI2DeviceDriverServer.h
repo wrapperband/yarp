@@ -40,8 +40,51 @@ using namespace yarp::os;
 namespace yarp {
     namespace dev {
         class OpenNI2DeviceDriverServer;
+        namespace impl {
+            class MyParser;
+        }
     }
 }
+
+class  yarp::dev::impl::MyParser : public yarp::os::TypedReaderCallback<Bottle>
+{
+private:
+    openni::VideoStream *settings;
+
+public:
+    void init(openni::VideoStream *x)
+    {
+        settings = x;
+    };
+
+    virtual void onRead(Bottle& v)
+    {
+        yInfo() << " 0: " << v.get(0).asString() << " 1: " << v.get(1).asString();
+        if(strcmp(v.get(0).asString().c_str(), "auto") == 0)
+        {
+            yInfo() << "Auto settings";
+            if(strcmp(v.get(1).asString().c_str(), "on") == 0)
+            {
+                yInfo() << "Turning ON autos";
+                if(settings)
+                {
+                    settings->getCameraSettings()->setAutoExposureEnabled(true);
+//                     settings->setAutoWhiteBalanceEnabled(true);
+                }
+            }
+            if(strcmp(v.get(1).asString().c_str(), "off") == 0)
+            {
+                yInfo() << "Turning OFF autos";
+                if(settings)
+                {
+                    settings->getCameraSettings()->setAutoExposureEnabled(false);
+//                     settings->setAutoWhiteBalanceEnabled(false);
+                }
+            }
+        }
+    }
+};
+
 // workaround for buggy XTION sensor. To be removed before merging in master
 #define LEFT_CROP_IMAGE  40
 #define RIGHT_CROP_IMAGE 60
@@ -85,6 +128,7 @@ public:
 private:
     BufferedPort<Bottle> *skeletonPort;
     BufferedPort<Bottle> *receivingPort;
+    impl::MyParser   parser;
     BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono16> > *depthFramePort;
     BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > *imageFramePort;
     OpenNI2SkeletonTracker *skeleton;

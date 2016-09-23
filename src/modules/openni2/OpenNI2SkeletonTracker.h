@@ -33,8 +33,10 @@ using namespace yarp::sig;
 #define DEFAULT_COLOR_MODE 0
 #define DEFAULT_DEPTH_MODE 0
 
-#define EXPOSURE_VALUE 0
-#define GAIN_VALUE     100
+#define GAIN_VALUE              1000
+#define EXPOSURE_VALUE          1000
+#define AUTO_EXPOSURE           false
+#define AUTO_WHITE_BALANCE      false
 
 /**
  * Class used by the OpenNI2DeviceDriverServer to interface with the sensor.
@@ -88,6 +90,7 @@ public:
      * get the static SensorStatus object
      */
     static SensorStatus *getSensor();
+    openni::VideoStream *getImageCameraSettings();
 private:
     static SensorStatus *sensorStatus;
     bool userTracking, colorON, rgbMirrorON, depthMirrorON, oniPlayback, oniRecord, loop, frameSync, imageRegistration, printMode;
@@ -114,6 +117,8 @@ private:
     openni::VideoFrameRef imageFrameRef;
     const openni::SensorInfo* depthInfo;
     const openni::SensorInfo* colorInfo;
+
+    openni::CameraSettings* cameraSettings;
 
     //NiTE objects
 #ifdef OPENNI2_DRIVER_USES_NITE2
