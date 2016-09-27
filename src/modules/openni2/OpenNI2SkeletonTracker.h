@@ -35,8 +35,8 @@ using namespace yarp::sig;
 
 #define GAIN_VALUE              1000
 #define EXPOSURE_VALUE          1000
-#define AUTO_EXPOSURE           false
-#define AUTO_WHITE_BALANCE      false
+#define AUTO_EXPOSURE           true
+#define AUTO_WHITE_BALANCE      true
 
 /**
  * Class used by the OpenNI2DeviceDriverServer to interface with the sensor.
